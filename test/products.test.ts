@@ -1,6 +1,6 @@
 import { handler as getProductList } from "../src/products/getList/getList"
 import { handler as getProductById } from "../src/products/getById/getById"
-import { getMock } from '../src/layers/mock/nodejs/products';
+import { getMock } from '../src/products/layers/mock/nodejs/products';
 
 
 describe('Products', () => {

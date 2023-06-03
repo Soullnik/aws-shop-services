@@ -1,5 +1,5 @@
 {
-  "app": "npx ts-node --prefer-ts-exts bin/aws-shop-services.ts",
+  "app": "npx node dist/bin/aws-shop-services.js",
   "watch": {
     "include": ["**"],
     "exclude": [

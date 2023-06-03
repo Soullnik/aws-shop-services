@@ -1,6 +1,7 @@
 import { Construct } from "constructs";
 import * as apigateway from "aws-cdk-lib/aws-apigateway";
 import * as lambda from "aws-cdk-lib/aws-lambda";
+import path from "path";
 
 export class ProductsService extends Construct {
     constructor(scope: Construct, id: string) {
@@ -10,20 +11,20 @@ export class ProductsService extends Construct {
             compatibleRuntimes: [
                 lambda.Runtime.NODEJS_18_X,
             ],
-            code: lambda.Code.fromAsset('src/layers/mock'),
+            code: lambda.Code.fromAsset(path.join(__dirname, 'layers/mock')),
             description: 'mock',
         });
 
         const getProductList = new lambda.Function(this, 'getListHandler', {
             runtime: lambda.Runtime.NODEJS_18_X,
-            code: lambda.Code.fromAsset('src/products/getList'),
+            code: lambda.Code.fromAsset(path.join(__dirname, 'getList')),
             handler: 'getList.handler',
             layers: [mockLayer]
         });
 
         const getProductById = new lambda.Function(this, 'getByIdHandler', {
             runtime: lambda.Runtime.NODEJS_18_X,
-            code: lambda.Code.fromAsset('src/products/getById'),
+            code: lambda.Code.fromAsset(path.join(__dirname, 'getById')),
             handler: 'getById.handler',
             layers: [mockLayer]
         });

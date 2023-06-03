@@ -28,7 +28,7 @@
     "outDir": "dist/",
     "paths": {
       "/opt/nodejs/products": [
-        "src/layers/mock/nodejs/products"
+        "src/products/layers/mock/nodejs/products"
       ]
     }
   },
