@@ -10,5 +10,5 @@ export const handler = async (
     if (product) {
         return generateResponce(200, product)
     }
-    return generateResponce(400, "Product not found")
+    return generateResponce(404, "Product not found")
 };

@@ -8,6 +8,6 @@ export const handler = async (
     try {
         return generateResponce(200, getMock())
     } catch (err) {
-        return generateResponce(400, err)
+        return generateResponce(500, err)
     }
 };
