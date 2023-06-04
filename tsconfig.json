@@ -20,21 +20,17 @@
     "inlineSources": true,
     "esModuleInterop": true,
     "experimentalDecorators": true,
+    "resolveJsonModule": true,
     "strictPropertyInitialization": false,
     "typeRoots": [
       "./node_modules/@types"
     ],
     "baseUrl": "./",
     "outDir": "dist/",
-    "paths": {
-      "/opt/nodejs/products": [
-        "src/products/layers/mock/nodejs/products"
-      ]
-    }
   },
   "exclude": [
     "node_modules",
     "cdk.out",
-    "test"
+    "test",
   ],
 }

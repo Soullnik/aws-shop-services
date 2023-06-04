@@ -1,32 +1,28 @@
 import { Construct } from "constructs";
 import * as apigateway from "aws-cdk-lib/aws-apigateway";
 import * as lambda from "aws-cdk-lib/aws-lambda";
+import * as cdk from 'aws-cdk-lib'
+import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import path from "path";
 
 export class ProductsService extends Construct {
     constructor(scope: Construct, id: string) {
         super(scope, id);
 
-        const mockLayer = new lambda.LayerVersion(this, 'mock-layer', {
-            compatibleRuntimes: [
-                lambda.Runtime.NODEJS_18_X,
-            ],
-            code: lambda.Code.fromAsset(path.join(__dirname, 'layers/mock')),
-            description: 'mock',
+        const getProductList = new NodejsFunction(this, 'getListHandler', {
+            runtime: lambda.Runtime.NODEJS_18_X,
+            memorySize: 1024,
+            timeout: cdk.Duration.seconds(5),
+            entry: path.join(__dirname, 'handlers/getList.ts'),
+            handler: 'handler',
         });
 
-        const getProductList = new lambda.Function(this, 'getListHandler', {
+        const getProductById = new NodejsFunction(this, 'getByIdHandler', {
             runtime: lambda.Runtime.NODEJS_18_X,
-            code: lambda.Code.fromAsset(path.join(__dirname, 'getList')),
-            handler: 'getList.handler',
-            layers: [mockLayer]
-        });
-
-        const getProductById = new lambda.Function(this, 'getByIdHandler', {
-            runtime: lambda.Runtime.NODEJS_18_X,
-            code: lambda.Code.fromAsset(path.join(__dirname, 'getById')),
-            handler: 'getById.handler',
-            layers: [mockLayer]
+            memorySize: 1024,
+            timeout: cdk.Duration.seconds(5),
+            entry: path.join(__dirname, 'handlers/getById.ts'),
+            handler: 'handler',
         });
 
         const api = new apigateway.RestApi(this, 'products-api', {

@@ -1,6 +1,6 @@
-import { handler as getProductList } from "../src/products/getList/getList"
-import { handler as getProductById } from "../src/products/getById/getById"
-import { getMock } from '../src/products/layers/mock/nodejs/products';
+import { handler as getProductList } from "../src/products/handlers/getList"
+import { handler as getProductById } from "../src/products/handlers/getById"
+import { getMock } from '../src/products/products.mock';
 
 
 describe('Products', () => {
@@ -32,7 +32,7 @@ describe('Products', () => {
             const expectedResponce = "Product not found"
             const responce = await getProductById(event)
             expect(responce.statusCode).toBe(400);
-            expect(responce.body).toBe(expectedResponce)
+            expect(responce.body).toBe(JSON.stringify(expectedResponce))
         })
     })
 })
