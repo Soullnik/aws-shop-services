@@ -10,3 +10,4 @@ new AwsShopServicesStack(app, 'AwsShopServicesStack', {
     account: process.env.CDK_DEFAULT_ACCOUNT,
   }
 });
+app.synth();

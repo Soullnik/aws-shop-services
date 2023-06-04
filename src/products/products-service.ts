@@ -1,13 +1,28 @@
 import { Construct } from "constructs";
+import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
+import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as apigateway from "aws-cdk-lib/aws-apigateway";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as cdk from 'aws-cdk-lib'
-import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import path from "path";
 
 export class ProductsService extends Construct {
     constructor(scope: Construct, id: string) {
         super(scope, id);
+
+        const productsTable = new dynamodb.Table(this, 'Products', {
+            partitionKey: { name: 'id', type: dynamodb.AttributeType.STRING },
+            readCapacity: 1,
+            writeCapacity: 1,
+            removalPolicy: cdk.RemovalPolicy.DESTROY,
+        })
+
+        // const stocksTable = new dynamodb.Table(this, 'Stocks', {
+        //     partitionKey: { name: 'id', type: dynamodb.AttributeType.STRING },
+        //     readCapacity: 1,
+        //     writeCapacity: 1,
+        //     removalPolicy: cdk.RemovalPolicy.DESTROY,
+        // })
 
         const getProductList = new NodejsFunction(this, 'getListHandler', {
             runtime: lambda.Runtime.NODEJS_18_X,
@@ -48,6 +63,9 @@ export class ProductsService extends Construct {
 
         const product = products.addResource('{product}')
         product.addMethod('GET', new apigateway.LambdaIntegration(getProductById));
+
+        productsTable.grantReadWriteData(getProductList)
+        productsTable.grantReadWriteData(getProductById)
     }
 
 
