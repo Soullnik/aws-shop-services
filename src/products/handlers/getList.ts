@@ -1,22 +1,43 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { generateResponce } from '../utils';
-import * as AWS from 'aws-sdk';
+import { generateResponce } from '../../utils/responceHandler';
+import { GetCommand, ScanCommand } from '@aws-sdk/lib-dynamodb';
+import { AvailableProduct, Product, ProductDto, Stock, StockDto } from '../models';
+import { client } from 'db';
 
-const TABLE_NAME = process.env.TABLE_NAME || '';
-
-const db = new AWS.DynamoDB.DocumentClient();
 
 export const handler = async (
     event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
-    const params = {
-        TableName: TABLE_NAME
-    };
+
+    const command = new ScanCommand({
+        TableName: 'products',
+    });
 
     try {
-        const response = await db.scan(params).promise();
-        return generateResponce(200, response.Items)
-    } catch (dbError) {
-        return generateResponce(500, dbError)
+        const response = await client.send(command);
+        const items: AvailableProduct[] = []
+
+        for (const item of response.Items as Product[]) {
+            const commandStock = new GetCommand({
+                TableName: 'stocks',
+                Key: {
+                    'product_id': item.id
+                }
+            });
+            const stock = await client.send(commandStock);
+            const stockItem = stock.Item as Stock
+            if (stockItem) {
+                items.push({
+                    id: item.id,
+                    description: item.description,
+                    title: item.title,
+                    price: item.price,
+                    count: stockItem.count
+                })
+            }
+        }
+        return generateResponce(200, items)
+    } catch (error) {
+        return generateResponce(500, error)
     }
 };

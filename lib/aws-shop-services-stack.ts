@@ -1,12 +1,12 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import { ProductsService } from '../src/products/products-service';
+import { ProductsServiceStack } from '../src/products/products-service-stack';
 
 export class AwsShopServicesStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    new ProductsService(this, 'ProductsService')
+    new ProductsServiceStack(this, 'ProductsService')
 
   }
 }
