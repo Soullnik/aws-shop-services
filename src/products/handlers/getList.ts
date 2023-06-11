@@ -1,7 +1,7 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { generateResponce } from '../../utils/responceHandler';
 import { GetCommand, ScanCommand } from '@aws-sdk/lib-dynamodb';
-import { AvailableProduct, Product, ProductDto, Stock, StockDto } from '../models';
+import { AvailableProduct, Product, Stock } from '../models';
 import { client } from 'db';
 
 
