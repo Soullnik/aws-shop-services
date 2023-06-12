@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import 'source-map-support/register';
+import 'dotenv/config'
 import * as cdk from 'aws-cdk-lib';
 import { AwsShopServicesStack } from '../lib/aws-shop-services-stack';
 
