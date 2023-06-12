@@ -1,7 +1,7 @@
 import { Construct } from "constructs";
 import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
-import { RestApi, LambdaIntegration } from "aws-cdk-lib/aws-apigateway";
-import { Table } from "aws-cdk-lib/aws-dynamodb";
+import { RestApi, LambdaIntegration, Cors } from "aws-cdk-lib/aws-apigateway";
+import { Table, AttributeType } from "aws-cdk-lib/aws-dynamodb";
 import { Runtime } from "aws-cdk-lib/aws-lambda";
 import { PolicyStatement } from "aws-cdk-lib/aws-iam";
 import { Duration } from 'aws-cdk-lib/core'
@@ -11,8 +11,15 @@ export class ProductsServiceStack extends Construct {
     constructor(scope: Construct, id: string) {
         super(scope, id);
 
-        const productsTable = Table.fromTableName(this, 'producuts-table', 'products')
-        const stocksTable = Table.fromTableName(this, 'stocks-table', 'stocks')
+        const productsTable = new Table(this, 'Products', {
+            partitionKey: { name: 'id', type: AttributeType.STRING },
+            tableName: 'products'
+        })
+
+        const stocksTable = new Table(this, 'Stocks', {
+            partitionKey: { name: 'product_id', type: AttributeType.STRING },
+            tableName: 'stocks'
+        })
 
         const getProductList = this.createLambda('getListHandler', 'handlers/getList.ts', [new PolicyStatement({
             actions: ['dynamodb:Scan', 'dynamodb:GetItem'],
@@ -21,24 +28,10 @@ export class ProductsServiceStack extends Construct {
         const getProductById = this.createLambda('getByIdHandler', 'handlers/getById.ts', [new PolicyStatement({
             actions: ['dynamodb:GetItem'],
             resources: [productsTable.tableArn, stocksTable.tableArn],
-            conditions: {
-                "ForAnyValue:StringEquals": {
-                    "dynamodb:EnclosingOperation": [
-                        "TransactGetItems"
-                    ]
-                }
-            }
         })])
         const postProduct = this.createLambda('postProduct', 'handlers/postProduct.ts', [new PolicyStatement({
             actions: ['dynamodb:PutItem'],
             resources: [productsTable.tableArn, stocksTable.tableArn],
-            conditions: {
-                "ForAnyValue:StringEquals": {
-                    "dynamodb:EnclosingOperation": [
-                        "TransactWriteItems"
-                    ]
-                }
-            }
         })])
 
         const api = new RestApi(this, 'products-api', {
@@ -47,19 +40,15 @@ export class ProductsServiceStack extends Construct {
                 stageName: 'dev',
             },
             defaultCorsPreflightOptions: {
-                allowHeaders: [
-                    'Content-Type',
-                    'X-Amz-Date',
-                    'Authorization',
-                    'X-Api-Key',
-                ],
-                allowMethods: ['OPTIONS', 'GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+                allowHeaders: Cors.DEFAULT_HEADERS,
+                allowMethods: Cors.ALL_METHODS,
                 allowCredentials: true,
-                allowOrigins: ['http://localhost:3000'],
+                allowOrigins: Cors.ALL_ORIGINS,
             },
         });
 
         api.root.addResource('products').addMethod('GET', new LambdaIntegration(getProductList))
+            .resource.addMethod('POST', new LambdaIntegration(postProduct))
             .resource.addResource('{product}').addMethod('GET', new LambdaIntegration(getProductById))
             .resource.addMethod('POST', new LambdaIntegration(postProduct));
 

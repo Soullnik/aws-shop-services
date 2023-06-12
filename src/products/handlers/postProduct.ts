@@ -20,7 +20,7 @@ export const handler = async (
     if (!hasAllFields) {
         return generateResponce(400, `Error: You are missing parameters`);
     }
-    const id = uuidv4()
+    const id = product.id ? product.id : uuidv4()
     const command = new TransactWriteCommand({
         TransactItems: [
             {
