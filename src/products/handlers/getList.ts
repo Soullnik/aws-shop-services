@@ -8,7 +8,7 @@ import { client } from 'db';
 export const handler = async (
     event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
-
+    console.log(event)
     const command = new ScanCommand({
         TableName: 'products',
     });

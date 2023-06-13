@@ -10,6 +10,7 @@ import { client } from 'db';
 export const handler = async (
     event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
+    console.log(event)
     if (!event.body) {
         return generateResponce(400, `empty body`);
     }

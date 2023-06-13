@@ -6,6 +6,7 @@ import { client } from 'db';
 export const handler = async (
     event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
+    console.log(event)
     const requestedItemId = event.pathParameters?.product;
     if (!requestedItemId) {
         return generateResponce(400, `Error: You are missing the path parameter id`);
