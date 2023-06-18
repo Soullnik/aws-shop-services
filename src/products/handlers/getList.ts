@@ -1,5 +1,5 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { generateResponce } from '../../utils/responceHandler';
+import { generateResponse } from '../../utils/responceHandler';
 import { GetCommand, ScanCommand } from '@aws-sdk/lib-dynamodb';
 import { AvailableProduct, Product, Stock } from '../models';
 import { client } from 'db';
@@ -36,8 +36,8 @@ export const handler = async (
                 })
             }
         }
-        return generateResponce(200, items)
+        return generateResponse(200, items)
     } catch (error) {
-        return generateResponce(500, error)
+        return generateResponse(500, error)
     }
 };

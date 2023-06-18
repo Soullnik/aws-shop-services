@@ -1,5 +1,5 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { generateResponce } from '../../utils/responceHandler';
+import { generateResponse } from '../../utils/responceHandler';
 import { TransactWriteCommand } from '@aws-sdk/lib-dynamodb';
 import { AvailableProduct } from '../models';
 import { v4 as uuidv4 } from 'uuid';
@@ -12,14 +12,14 @@ export const handler = async (
 ): Promise<APIGatewayProxyResult> => {
     console.log(event)
     if (!event.body) {
-        return generateResponce(400, `empty body`);
+        return generateResponse(400, `empty body`);
     }
 
     const requiredFields = ['description', 'price', 'title', 'count']
     const product = JSON.parse(event.body) as AvailableProduct;
     const hasAllFields = requiredFields.reduce((acc, field) => acc ? product.hasOwnProperty(field) : acc, true)
     if (!hasAllFields) {
-        return generateResponce(400, `Error: You are missing parameters`);
+        return generateResponse(400, `Error: You are missing parameters`);
     }
     const id = product.id ? product.id : uuidv4()
     const command = new TransactWriteCommand({
@@ -49,8 +49,8 @@ export const handler = async (
 
     try {
         await client.send(command);
-        return generateResponce(200, 'product added')
+        return generateResponse(200, 'product added')
     } catch (error) {
-        return generateResponce(500, error)
+        return generateResponse(500, error)
     }
 };
