@@ -6,8 +6,8 @@ export interface Product {
 }
 
 export interface Stock {
-    id: string,
+    'product_id': string,
     count: number,
 }
 
-export type AvailableProduct = Stock & Product
+export type AvailableProduct = Product & { count: number }

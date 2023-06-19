@@ -1,7 +1,7 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { generateResponse } from '../../utils/responceHandler';
-import { TransactGetCommand } from '@aws-sdk/lib-dynamodb';
-import { client } from 'db';
+import { DynamoDBDocumentClient, TransactGetCommand } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 
 export const handler = async (
     event: APIGatewayProxyEvent
@@ -11,6 +11,8 @@ export const handler = async (
     if (!requestedItemId) {
         return generateResponse(400, `Error: You are missing the path parameter id`);
     }
+    const db = new DynamoDBClient({});
+    const client = DynamoDBDocumentClient.from(db);
     const command = new TransactGetCommand({
         TransactItems: [
             {

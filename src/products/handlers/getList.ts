@@ -1,14 +1,18 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { generateResponse } from '../../utils/responceHandler';
-import { GetCommand, ScanCommand } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBDocumentClient, GetCommand, ScanCommand } from '@aws-sdk/lib-dynamodb';
 import { AvailableProduct, Product, Stock } from '../models';
-import { client } from 'db';
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+
 
 
 export const handler = async (
     event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
     console.log(event)
+    const db = new DynamoDBClient({});
+    const client = DynamoDBDocumentClient.from(db);
+
     const command = new ScanCommand({
         TableName: 'products',
     });
