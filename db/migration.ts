@@ -1,9 +1,11 @@
-import { AttributeDefinition, CreateTableCommand, KeySchemaElement, ListTablesCommand } from "@aws-sdk/client-dynamodb";
-import { PutCommand } from "@aws-sdk/lib-dynamodb";
-import { Product } from "../src/products/models";
+import { AttributeDefinition, CreateTableCommand, DynamoDBClient, KeySchemaElement, ListTablesCommand } from "@aws-sdk/client-dynamodb";
+import { DynamoDBDocumentClient, TransactWriteCommand } from "@aws-sdk/lib-dynamodb";
+import { AvailableProduct } from "../src/products/models";
 import { getMock } from "./products.mock";
-import { client } from "db";
 
+
+const db = new DynamoDBClient({});
+export const client = DynamoDBDocumentClient.from(db);
 
 const hasTable = async (tableName: string): Promise<boolean | undefined> => {
     const command = new ListTablesCommand({});
@@ -33,15 +35,34 @@ const createTable = async (tableName: string, attributes: AttributeDefinition[],
     }
 }
 
-const putItems = async (items: Record<string, any>[], tableName: string) => {
+const putItems = async (items: AvailableProduct[]) => {
     for (const item of items) {
-        const command = new PutCommand({
-            TableName: tableName,
-            Item: item,
-        });
+        const command = new TransactWriteCommand({
+            TransactItems: [
+                {
+                    Put: {
+                        TableName: 'products',
+                        Item: {
+                            id: item.id,
+                            title: item.title,
+                            price: item.price,
+                            description: item.description
+                        }
+                    }
+                },
+                {
+                    Put: {
+                        TableName: 'stocks',
+                        Item: {
+                            'product_id': item.id,
+                            count: item.count
+                        }
+                    }
+                }
+            ]
+        })
         try {
-            const contents = await client.send(command);
-            console.log(`code: ${contents.$metadata.httpStatusCode}, item added`)
+            await client.send(command);
         } catch (err) {
             console.log(err)
         }
@@ -50,55 +71,15 @@ const putItems = async (items: Record<string, any>[], tableName: string) => {
 }
 
 
-const migrationProducts = async (products: Product[]) => {
-    const tableName = "products"
+const migration = async (products: AvailableProduct[]) => {
     try {
-        const tableExists = await hasTable(tableName)
-        if (!tableExists) {
-            await createTable(tableName, [
-                {
-                    AttributeName: "id",
-                    AttributeType: "S",
-                },
-            ], [
-                {
-                    AttributeName: "id",
-                    KeyType: "HASH",
-                },
-            ])
-        }
-        await putItems(products, tableName)
+        await putItems(products)
+        console.log(`items added`)
     } catch (error) {
         console.log(error)
     }
 };
 
-const migrationStock = async (products: Product[]) => {
-    const tableName = "stocks"
-    try {
-        const tableExists = await hasTable(tableName)
-        if (!tableExists) {
-            await createTable(tableName, [
-                {
-                    AttributeName: "product_id",
-                    AttributeType: "S",
-                },
-            ], [
-                {
-                    AttributeName: "product_id",
-                    KeyType: "HASH",
-                },
-            ])
-        }
-        await putItems(products.map((product) => ({ 'product_id': product.id, count: Math.floor(product.price / 2) })), tableName)
-    } catch (error) {
-        console.log(error)
-    }
-};
-
-
-const products = getMock()
-migrationProducts(products)
-migrationStock(products)
+migration(getMock())
 
 

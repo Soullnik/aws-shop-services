@@ -1,5 +1,5 @@
 
-export const generateResponce = (statusCode: number, body: any) => {
+export const generateResponse = (statusCode: number, body: any) => {
     return {
         statusCode: statusCode,
         headers: {

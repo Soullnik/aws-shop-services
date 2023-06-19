@@ -1,13 +1,17 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { generateResponce } from '../../utils/responceHandler';
-import { GetCommand, ScanCommand } from '@aws-sdk/lib-dynamodb';
+import { generateResponse } from '../../utils/responceHandler';
+import { DynamoDBDocumentClient, GetCommand, ScanCommand } from '@aws-sdk/lib-dynamodb';
 import { AvailableProduct, Product, Stock } from '../models';
-import { client } from 'db';
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+
 
 
 export const handler = async (
     event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
+    console.log(event)
+    const db = new DynamoDBClient({});
+    const client = DynamoDBDocumentClient.from(db);
 
     const command = new ScanCommand({
         TableName: 'products',
@@ -36,8 +40,8 @@ export const handler = async (
                 })
             }
         }
-        return generateResponce(200, items)
+        return generateResponse(200, items)
     } catch (error) {
-        return generateResponce(500, error)
+        return generateResponse(500, error)
     }
 };
