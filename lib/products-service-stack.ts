@@ -2,12 +2,14 @@ import { Construct } from "constructs";
 import { RestApi, LambdaIntegration } from "aws-cdk-lib/aws-apigateway";
 import { Table, AttributeType } from "aws-cdk-lib/aws-dynamodb";
 import { PolicyStatement } from "aws-cdk-lib/aws-iam";
-
+import { Queue } from "aws-cdk-lib/aws-sqs";
 import { createLambda } from "../src/utils/createLambda";
 import { ProductsService } from "../src/products";
+import { SqsEventSource } from "aws-cdk-lib/aws-lambda-event-sources";
+import { Topic } from "aws-cdk-lib/aws-sns";
 
 export class ProductsServiceStack extends Construct {
-    constructor(scope: Construct, id: string, api: RestApi) {
+    constructor(scope: Construct, id: string, api: RestApi, catalogItemsQueue: Queue, createProductTopic: Topic) {
         super(scope, id);
 
         const productsTable = new Table(this, 'Products', {
@@ -46,6 +48,21 @@ export class ProductsServiceStack extends Construct {
                 resources: [productsTable.tableArn, stocksTable.tableArn],
             })]
         })
+
+        const catalogBatchProcess = createLambda(this, {
+            name: 'catalogBatchProcess',
+            handlerPath: ProductsService.catalogBatchProcessHandlerPath(),
+            policy: [new PolicyStatement({
+                actions: ['dynamodb:PutItem'],
+                resources: [productsTable.tableArn, stocksTable.tableArn],
+            })]
+        },
+            {
+                TOPIC_ARN: createProductTopic.topicArn
+            })
+
+        createProductTopic.grantPublish(catalogBatchProcess)
+        catalogBatchProcess.addEventSource(new SqsEventSource(catalogItemsQueue, { batchSize: 5 }));
 
         api.root.addResource('products').addMethod('GET', new LambdaIntegration(getProductList))
             .resource.addMethod('POST', new LambdaIntegration(postProduct))

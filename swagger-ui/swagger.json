@@ -79,6 +79,9 @@
         },
         "title": {
           "type": "string"
+        },
+        "count": {
+          "type": "integer"
         }
       }
     },
