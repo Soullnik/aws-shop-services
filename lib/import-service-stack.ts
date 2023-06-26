@@ -6,9 +6,10 @@ import { Bucket, EventType, HttpMethods } from "aws-cdk-lib/aws-s3";
 import { RemovalPolicy } from "aws-cdk-lib";
 import { PolicyStatement } from "aws-cdk-lib/aws-iam";
 import { S3EventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
+import { Queue } from "aws-cdk-lib/aws-sqs";
 
 export class ImportServiceStack extends Construct {
-    constructor(scope: Construct, id: string, api: RestApi) {
+    constructor(scope: Construct, id: string, api: RestApi, catalogItemsQueue: Queue) {
         super(scope, id);
 
         const bucket = new Bucket(this, 'myBucket', {
@@ -51,12 +52,14 @@ export class ImportServiceStack extends Construct {
         const importFileParser = createLambda(this, {
             name: 'importFileParser',
             handlerPath: ImportService.importFileParser(),
+        }, {
+            QUEUE_URL: catalogItemsQueue.queueUrl
         })
 
         bucket.grantReadWrite(importFileParser)
         bucket.grantDelete(importFileParser)
         bucket.grantReadWrite(importProductsFile)
-
+        catalogItemsQueue.grantSendMessages(importFileParser)
 
         const s3PutEventSource = new S3EventSource(bucket, {
             events: [

@@ -13,4 +13,7 @@ export class ProductsService {
     static getPostProductHandlerPath() {
         return path.join(__dirname, 'handlers', 'postProduct.ts')
     }
+    static catalogBatchProcessHandlerPath() {
+        return path.join(__dirname, 'handlers', 'catalogBatchProcess.ts')
+    }
 }
