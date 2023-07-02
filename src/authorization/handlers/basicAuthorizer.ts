@@ -1,32 +1,36 @@
 import { APIGatewayAuthorizerResult, APIGatewayTokenAuthorizerEvent } from "aws-lambda"
 
 export const handler = async (
-    event: APIGatewayTokenAuthorizerEvent
+    event: APIGatewayTokenAuthorizerEvent,
 ): Promise<APIGatewayAuthorizerResult> => {
     console.log(event)
-    let token = event.authorizationToken
 
-    let effect = 'Deny'
+    const principalId = 'user'
+    if (!event.authorizationToken || !event.authorizationToken.includes('Basic ')) {
+        return generateAuthorizedPolicy(principalId, 'Deny', event.methodArn)
+    }
+    const token = event.authorizationToken.replace('Basic ', '')
+    const [userName, password] = atob(token).split(':')
 
-    if (token == "sGLzdRxvZmw0ZXs0UGFzcw==") {
-        effect = 'Allow'
-    } else {
-        effect = 'Deny'
+    if (!userName || !password || (process.env[userName] !== password)) {
+        return generateAuthorizedPolicy(principalId, 'Deny', event.methodArn)
     }
 
-    let policy = {
-        "principalId": "user",
+    return generateAuthorizedPolicy(principalId, 'Allow', event.methodArn)
+};
+
+const generateAuthorizedPolicy = (principalId: string, effect: string, resource: string): APIGatewayAuthorizerResult => {
+    return {
+        "principalId": principalId,
         "policyDocument": {
             "Version": "2012-10-17",
             "Statement": [
                 {
                     "Action": "execute-api:Invoke",
                     "Effect": effect,
-                    "Resource": event.methodArn
+                    "Resource": resource
                 }
             ]
         }
     }
-    return policy
-
-};
+}
