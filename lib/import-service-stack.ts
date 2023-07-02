@@ -7,9 +7,10 @@ import { RemovalPolicy } from "aws-cdk-lib";
 import { PolicyStatement } from "aws-cdk-lib/aws-iam";
 import { S3EventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
 import { Queue } from "aws-cdk-lib/aws-sqs";
+import { GatewayStack } from "./gateway-shop-stack";
 
 export class ImportServiceStack extends Construct {
-    constructor(scope: Construct, id: string, api: RestApi, catalogItemsQueue: Queue) {
+    constructor(scope: Construct, id: string, gateway: GatewayStack, catalogItemsQueue: Queue) {
         super(scope, id);
 
         const bucket = new Bucket(this, 'myBucket', {
@@ -72,6 +73,6 @@ export class ImportServiceStack extends Construct {
 
         importFileParser.addEventSource(s3PutEventSource);
 
-        api.root.addResource('import').addMethod('GET', new LambdaIntegration(importProductsFile))
+        gateway.api.root.addResource('import').addMethod('GET', new LambdaIntegration(importProductsFile), { authorizer: gateway.authorizer })
     }
 }

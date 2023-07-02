@@ -7,9 +7,10 @@ import { createLambda } from "../src/utils/createLambda";
 import { ProductsService } from "../src/products";
 import { SqsEventSource } from "aws-cdk-lib/aws-lambda-event-sources";
 import { Topic } from "aws-cdk-lib/aws-sns";
+import { GatewayStack } from "./gateway-shop-stack";
 
 export class ProductsServiceStack extends Construct {
-    constructor(scope: Construct, id: string, api: RestApi, catalogItemsQueue: Queue, createProductTopic: Topic) {
+    constructor(scope: Construct, id: string, gateway: GatewayStack, catalogItemsQueue: Queue, createProductTopic: Topic) {
         super(scope, id);
 
         const productsTable = new Table(this, 'Products', {
@@ -64,7 +65,7 @@ export class ProductsServiceStack extends Construct {
         createProductTopic.grantPublish(catalogBatchProcess)
         catalogBatchProcess.addEventSource(new SqsEventSource(catalogItemsQueue, { batchSize: 5 }));
 
-        api.root.addResource('products').addMethod('GET', new LambdaIntegration(getProductList))
+        gateway.api.root.addResource('products').addMethod('GET', new LambdaIntegration(getProductList))
             .resource.addMethod('POST', new LambdaIntegration(postProduct))
             .resource.addResource('{product}').addMethod('GET', new LambdaIntegration(getProductById))
             .resource.addMethod('POST', new LambdaIntegration(postProduct));
